@@ -2,19 +2,19 @@ unsigned char O_SER = 5;
 unsigned char O_RCLK = 6;
 unsigned char O_SRCLK = 7;
 
-unsigned int C[3] = {130, 262, 523};
-  unsigned int Db[3] = {139, 277, 554};
-  unsigned int D[3] = {147, 294, 587};
-  unsigned int Eb[3] = {155, 331, 622};
-  unsigned int E[3] = {165, 330, 659};
-  unsigned int F[3] = {175, 349, 698};
-  unsigned int Gb[3] = {185, 370, 392};
-  unsigned int G[3] = {196, 392, 784};
-  unsigned int Ab[3] = {208, 415, 831};
-  unsigned int A[3] = {220, 440, 880};
-  unsigned int Bb[3] = {233, 466, 932};
-  unsigned int B[3] = {247, 494, 988};
-
+  int C[3] = {130, 262, 523};
+  int Db[3] = {139, 277, 554};
+  int D[3] = {147, 294, 587};
+  int Eb[3] = {155, 331, 622};
+  int E[3] = {165, 330, 659};
+  int F[3] = {175, 349, 698};
+  int Gb[3] = {185, 370, 739};
+  int G[3] = {196, 392, 784};
+  int Ab[3] = {208, 415, 831};
+  int A[3] = {220, 440, 880};
+  int Bb[3] = {233, 466, 932};
+  int B[3] = {247, 494, 988};
+  
 unsigned char ColumnPin[8] = {4, 10, 11, 1, 13, 2, 6, 7};
 unsigned char RowPin[8] =       {0, 5, 15, 3, 8, 14, 9, 12};
 //入力状態を取得するときに使用するクラス
@@ -332,79 +332,151 @@ public:
 };
 
 
-class Sound{
+class MLD{
   public:
-  class Melody{
-    int MS;
-    int ST;
-    int SI;
-    int VT;
-    public:
-        Melody(unsigned int musical_scale, unsigned int sound_time, unsigned int sound_index, int value_timing){
-            MS = musical_scale;
-            ST = sound_time;
-            SI = sound_index;
-            VT = value_timing;
-        }
-        void play(int value){
-            if(SI == 1 && value == VT){
-                tone(A7, MS,ST);
+  int musical_scale = C[2];
+  int musical_time = 0;
+  int postponement = 0;
+  MLD(int arg_ms, int arg_mt = 500, int arg_postponement = 0){
+      musical_scale = arg_ms;
+      musical_time = arg_mt;
+      postponement = arg_postponement;
+  }
+};
+class Tones{
+  public:
+  int value = 0;
+  int pin = 0;
+  int scale = 0;
+  int time = 0;
+  Tones(){
+
+  }
+  void play(int arg_pin, int arg_scale, int arg_time, int arg_postponement){
+    pin = arg_pin;
+    scale = arg_scale;
+    time = arg_time;
+    value = arg_postponement;
+    if(value == 0){
+      value = -1;
+      tone(pin, scale, time);
+    }
+  }
+  void update(){
+    if(value != -1){
+      value--;
+      if(value == 0){
+        value = -1;
+        tone(pin, scale, time);
+      }
+    }
+  }
+};
+class Music{
+  public:
+  int sound_item_num = 1;
+  int pin[3] = {0,0,0};
+  double value = 0;
+  Tones tone = Tones();
+  MLD sound1[8] = {MLD(1),MLD(1),MLD(1),MLD(1),MLD(1),MLD(1),MLD(1),MLD(1)};
+  MLD sound2[8] = {MLD(1),MLD(1),MLD(1),MLD(1),MLD(1),MLD(1),MLD(1),MLD(1)};
+  double sound_timer = 500;
+  int cycle_time = 0;
+  bool end_sound_played = false;
+    Music(int sound_pin[3], double st = 500, int sin = 2){
+      pin[0] = sound_pin[0];
+      pin[1] = sound_pin[1];
+      pin[2] = sound_pin[2];
+      sound_timer = st;
+      sound_item_num = sin;
+    }
+    void Do(){
+      for(int i = 0; i < 8; i++){
+        if(( sound_timer / 8.0 ) * i == value){
+          if(sound1[i].musical_scale != 0){
+            tone.play(pin[0], sound1[i].musical_scale,sound1[i].musical_time, sound1[i].postponement);
+          }
+          else if(sound1[i].musical_scale != -1){
+            end_sound_played = true;
+            value = 1000000;
+          }
+            if(i == 7){
+              end_sound_played = true;
             }
         }
-  };
-  
+      }
+      tone.update();
+      int tmp = 1;
+      for(tmp ; tmp < 3; tmp++){
+        subDo(tmp);
+      }
+      value++;
+        if(value > sound_timer){
+          end_sound_played = false;
+          value = 0;
+          cycle_time++;
+        }
+    }
+    void subDo(int pin_i){
+        for(int i = 0; i < 8; i++){
+        if(( sound_timer / 8 ) * i == value){
+            //tone(pin[pin_i], sound2[i].musical_scale,sound2[i].musical_time);
+        }
+      }
+    }
+    void Reset(){
+      cycle_time = 0;
+      value = 0;
+    }
+};
+// 音だけ鳴らすとき
+class Sound{
+  public:
   int pin = 0;
-  int value = 0;
     Sound(int sound_pin){
       pin = sound_pin;
     }
-    void Play(unsigned int musical_scale, unsigned int sound_time, unsigned int sound_index){
-        if(sound_index == 1){
-            tone(A7, musical_scale,sound_time);
-        }
-        if(sound_index == 2){
-            tone(A6, musical_scale,sound_time);
-        }
+    void Play(unsigned int musical_scale, unsigned int soundtime){
+      tone(pin, musical_scale,soundtime);
     }
     void MusicPlay(){
 
-        value += 1;
     }
 };
-
-
+Sound Sound1 = Sound(A7);
+Sound Sound2 = Sound(A6);
 // これはeffectクラスたちの属性的構造体です
 class Effect{
     public:
     Timer update = Timer(true, "time", 8);
     bool visible = true;
     Effect(){
-        return ;
+
     }
 };
 class EffectPoint{
     public:
-        int x = 0;
-        int y = 0;
-        int effect_point_type = 3;
-        bool visible = false;
-        EffectPoint(int arg_x, int arg_y){
-            x = arg_x;
-            y = arg_y;
-        }
-        void overflow_checker(){
-            if (x < 0 || x > 15){
-              x = 0;
-              visible = false;
-            }
-            if (y < 0 || y > 15){
-              y = 0;
-              visible = false;
-            }
-        }
-        void draw(){
-            if(visible == true) matrix.map[y][x] = effect_point_type;
-        }
+      int x = 0;
+      int y = 0;
+      int effect_point_type = 3;
+      bool visible = false;
+      EffectPoint(int arg_x, int arg_y){
+          x = arg_x;
+          y = arg_y;
+      }
+      void overflow_checker(){
+          if (x < 0 || x > 15){
+            x = 0;
+            visible = false;
+          }
+          if (y < 0 || y > 15){
+            y = 0;
+            visible = false;
+          }
+      }
+      void draw(){
+          if(visible == true) matrix.map[y][x] = effect_point_type;
+      }
     };
 
 class CrossEffect{
@@ -414,14 +486,16 @@ class CrossEffect{
     EffectPoint EP_LD;
     EffectPoint EP_RU;
     EffectPoint EP_RD;
-    CrossEffect(int arg_x, int arg_y){
-        EP_LU = EffectPoint(arg_x, arg_y);
-        EP_LD = EffectPoint(arg_x, arg_y);
-        EP_RU = EffectPoint(arg_x, arg_y);
-        EP_RD = EffectPoint(arg_x, arg_y);
-    }
+    bool visible = false;
+    CrossEffect(int arg_ex, int arg_ey):
+        EP_LU(arg_ex, arg_ey),
+        EP_LD(arg_ex, arg_ey),
+        EP_RU(arg_ex, arg_ey),
+        EP_RD(arg_ex, arg_ey)
+        {}
     void update(){
-        if(effect.update.Do(5) == true){
+      if(visible == true){
+        if(effect.update.Do(8) == true){
             EP_LU.y -= 1;
             EP_LU.x -= 1;
 
@@ -435,8 +509,14 @@ class CrossEffect{
             EP_RD.x += 1;
             if(effect.update.finish_cycle == true){
                 EP_LD.visible = EP_LU.visible = EP_RD.visible = EP_RU.visible = false;
+                visible = false;
             }
         }
+      }
+    }
+    void Stop(){
+      EP_LD.visible = EP_LU.visible = EP_RD.visible = EP_RU.visible = false;
+      visible = false;
     }
     // effectを再生します、update関数を常に実行している状態にしてください。また、終了の合図はeffect.update.get_cycle_finish()で確認してください
     void play(int playtime, int arg_x, int arg_y){
@@ -446,5 +526,14 @@ class CrossEffect{
         EP_LD.x = EP_LU.x = EP_RD.x = EP_RU.x = arg_x;
         EP_LD.y = EP_LU.y = EP_RD.y = EP_RU.y = arg_y;
         EP_LD.visible = EP_LU.visible = EP_RD.visible = EP_RU.visible = true;
+        visible = true;
+    }
+    void draw(){
+      if(visible == true){
+        if(EP_LD.y >= 0 && EP_LD.y < 16 && EP_LD.x >= 0 && EP_LD.x < 16 ) matrix.map[EP_LD.y][EP_LD.x] = 3;
+        if(EP_LU.y >= 0 && EP_LU.y < 16 && EP_LU.x >= 0 && EP_LU.x < 16 ) matrix.map[EP_LU.y][EP_LU.x] = 3;
+        if(EP_RD.y >= 0 && EP_RD.y < 16 && EP_RD.x >= 0 && EP_RD.x < 16 ) matrix.map[EP_RD.y][EP_RD.x] = 3;
+        if(EP_RU.y >= 0 && EP_RU.y < 16 && EP_RU.x >= 0 && EP_RU.x < 16 ) matrix.map[EP_RU.y][EP_RU.x] = 3;
+      }
     }
 };
