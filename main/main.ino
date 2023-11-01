@@ -1,4 +1,4 @@
-#include <C:\Users\macar\Documents\Arduino Script\ard_game_new\ard-game.ino>
+#include <C:\Users\豊橋工科高生徒00601\Documents\C++File\ard_game_new\ard-game-lib.ino>
 SnakeGame snake_game;
 Chrono chrono;
 Timer select_response_time;

@@ -1,4 +1,4 @@
-#include <C:\Users\macar\Documents\Arduino Script\ard_game_new\ard-game-lib.ino>
+#include <C:\Users\豊橋工科高生徒00601\Documents\C++File\ard_game_new\ard-game-lib.ino>
 // 実行環境によって変える必要があります
 
 class Chrono{
@@ -605,7 +605,112 @@ class SnakeGame {
       }
     }
 };
+class Player{
+  public:
+  class Velocity{
+    public:
+      int x = 0;
+      int y = 0;
+      Velocity(int arg_x, int arg_y){
+        x = arg_x;
+        y = arg_y;
+      }
+  };
+    int x = 0;
+    int y = 0;
+    int w = 1; //幅
+    int d = 0; //direction
+    int point;
+    Velocity v = Velocity(0,0);
+    Player(int arg_x = 0, int arg_y = 0, int vx = 0, int vy = 0){
+      x = arg_x;
+      y = arg_y;
+      v.x = vx;
+      v.y = vy;
+    }
+    int xw(){
+      return x + w;
+    }
+    bool add_point(){
+      point += 1;
+      if(point < 8){
+        return true;
+      }
+      return false;
+    }
+};
+class Ball{
+  public:
+  class Velocity{
+    public:
+      double x = 0;
+      double y = 0;
+      Velocity(double arg_x, double arg_y){
+        x = arg_x;
+        y = arg_y;
+      }
+  };
+  double x = 0;
+  double y = 0;
+  bool side = false;
+  Velocity v = Velocity(0,0);
+  Ball(double arg_x = 0, double arg_y = 0, double vx = 0, double vy = 0){
+    x = arg_x;
+    y = arg_y;
+    v.x = vx;
+    v.y = vy;
+  }
+};
+class Tennis{
+  public:
 
+  Player playerR = Player(0, 7);
+  Player playerL = Player(15, 7);
+  Ball ball = Ball(0,0);
+    Tennis(){
+
+    }
+  // ボールがx軸上に当たった
+  void return_ball_y(){
+    if(ball.y > 15){
+      ball.v.y = ball.v.y * (-1);
+    }
+    if(ball.y < 1){
+      ball.v.y = ball.v.y * (-1);
+    }
+  }
+  // ボールがプレイヤーに衝突した
+  void return_ball_x(){
+    if(ball.x > 14 && playerR.y < ball.y && playerR.xw() > ball.y){
+      ball.v.x = ball.v.x * (-1);
+    }
+    else if(ball.x < 2 && playerL.y < ball.y && playerL.xw() > ball.y){
+      ball.v.x = ball.v.x * (-1);
+    }
+    else if(ball.x > 15){
+      if(playerR.add_point() == true){
+        Reset();
+      }
+      else{
+        result();
+      }
+    }
+    else if(ball.x < 0){
+      if(playerL.add_point() == true){
+        Reset();
+      }
+      else{
+        result();
+      }
+    }
+  }
+  void Reset(){
+    
+  }
+  void result(){
+
+  }
+};
 
 
 
